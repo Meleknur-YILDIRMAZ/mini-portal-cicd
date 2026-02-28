@@ -2,26 +2,28 @@ pipeline {
   agent any
 
   environment {
-    IMAGE     = "mini-portal-cicd:latest"
+    IMAGE = "mini-portal-cicd:latest"
     CONTAINER = "mini-portal-cicd"
-    PORT      = "5000"
+    PORT = "5000"
   }
 
   stages {
+
     stage("Checkout") {
-      steps { checkout scm }
+      steps {
+        checkout scm
+      }
     }
 
     stage("Test") {
       steps {
         bat """
-          py -m venv .venv
+          set PY=C:\\Users\\yildi\\AppData\\Local\\Programs\\Python\\Python314\\python.exe
+          "%PY%" -m venv .venv
           call .venv\\Scripts\\activate.bat
-
-          py -m pip install --upgrade pip
-          py -m pip install -r requirements.txt
-
-          py -m pytest -q
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m pytest -q
         """
       }
     }
@@ -43,9 +45,9 @@ pipeline {
         """
 
         powershell """
-          Start-Sleep -Seconds 2
+          Start-Sleep -Seconds 3
           Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5000/health | Out-Null
-          Write-Host "Health check OK ✅"
+          Write-Host "Health check OK"
         """
       }
     }
