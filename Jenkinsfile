@@ -1,61 +1,44 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    IMAGE = "mini-portal-cicd:latest"
-    CONTAINER = "mini-portal-cicd"
-    PORT = "5000"
-  }
-
-  stages {
-
-    stage("Checkout") {
-      steps {
-        checkout scm
-      }
+    environment {
+        IMAGE     = "mini-portal-cicd:latest"
+        CONTAINER = "mini-portal-cicd"
+        PORT      = "5000"
     }
 
-    stage("Test") {
-      steps {
-        bat """
-          set PY=C:\\Users\\yildi\\AppData\\Local\\Programs\\Python\\Python314\\python.exe
-          "%PY%" -m venv .venv
-          call .venv\\Scripts\\activate.bat
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m pytest -q
-        """
-      }
+    stages {
+        stage("Checkout") {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage("Test (inside Docker)") {
+            steps {
+                sh '''
+                    set -eux
+                    docker build -t ${IMAGE} .
+                    docker run --rm ${IMAGE} pytest -q
+                '''
+            }
+        }
+
+        stage("Deploy (Ubuntu)") {
+            steps {
+                sh '''
+                    set -eux
+                    docker rm -f ${CONTAINER} || true
+                    docker run -d --name ${CONTAINER} -p ${PORT}:5000 ${IMAGE}
+                    docker ps --filter "name=${CONTAINER}"
+                '''
+            }
+        }
     }
 
-    stage("Build Docker Image") {
-      steps {
-        bat """
-          docker --version
-          docker build -t %IMAGE% .
-        """
-      }
+    post {
+        always {
+            echo "Pipeline finished."
+        }
     }
-
-    stage("Deploy (Windows Local)") {
-      steps {
-        bat """
-          docker rm -f %CONTAINER% 2>NUL
-          docker run -d --name %CONTAINER% -p 5000:%PORT% %IMAGE%
-        """
-
-        powershell """
-          Start-Sleep -Seconds 3
-          Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5000/health | Out-Null
-          Write-Host "Health check OK"
-        """
-      }
-    }
-  }
-
-  post {
-    always {
-      echo "Pipeline finished."
-    }
-  }
 }
