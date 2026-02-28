@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Randevu Portalı</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="brand-text">
+        <h1>Mini Randevu Portalı</h1>
+        <p>Randevularını hızlıca ekle, görüntüle ve yönet.</p>
+      </div>
+    </div>
+
+    <div class="badge">
+      <span class="badge-dot"></span>
+      <span>Online</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Yeni Randevu</h2>
+        <p>Bilgileri gir ve kaydı oluştur.</p>
+      </div>
+
+      <form class="form" action="/add" method="post">
+        <div class="field">
+          <label>Ad Soyad</label>
+          <input name="name" placeholder="Örn: Sude Kübra" required>
+        </div>
+
+        <div class="field">
+          <label>Doktor / Bölüm</label>
+          <select name="doctor" required>
+            <option value="" selected disabled>Seçiniz</option>
+            <option>Dahiliye</option>
+            <option>Kardiyoloji</option>
+            <option>Göz</option>
+            <option>Dermatoloji</option>
+            <option>Ortopedi</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tarih</label>
+          <input name="date" type="date" required>
+        </div>
+
+        <div class="field">
+          <label>Saat</label>
+          <input name="time" type="time" required>
+        </div>
+
+        <button class="btn primary" type="submit">Randevu Oluştur</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head row">
+        <div>
+          <h2>Randevular</h2>
+          <p>Kaydedilmiş randevu listesi.</p>
+        </div>
+        <div class="count">{{ appointments|length }} kayıt</div>
+      </div>
+
+      {% if appointments %}
+      <div class="table">
+        <div class="trow thead">
+          <div>#</div>
+          <div>Ad</div>
+          <div>Bölüm</div>
+          <div>Tarih</div>
+          <div>Saat</div>
+          <div></div>
+        </div>
+
+        {% for a in appointments %}
+        <div class="trow">
+          <div class="muted">{{ a.id }}</div>
+          <div class="strong">{{ a.name }}</div>
+          <div>{{ a.doctor }}</div>
+          <div class="mono">{{ a.date }}</div>
+          <div class="mono">{{ a.time }}</div>
+          <div class="right">
+            <form action="/delete/{{ a.id }}" method="post">
+              <button class="btn danger" type="submit">Sil</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+        <div class="empty">
+          <div class="empty-icon" aria-hidden="true"></div>
+          <div>
+            <h3>Henüz kayıt yok</h3>
+            <p>Yukarıdan yeni bir randevu ekleyebilirsin.</p>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+
+    <footer class="footer">
+      <span>Mini Portal • /health ile kontrol edilebilir</span>
+      <span class="muted">Gece Modu</span>
+    </footer>
+  </main>
+</body>
+</html>
